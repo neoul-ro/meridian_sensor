@@ -10,7 +10,7 @@
   <buildtool_depend>ament_python</buildtool_depend>
 
   <depend>rclpy</depend>
-  <depend>meridian_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
   <depend>python3-numpy</depend>
 

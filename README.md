@@ -1,12 +1,16 @@
 # meridian_sensor
 
-Replays a TUM RGB-D sequence as `meridian_msgs/RGBDFrame`.
+Replays a TUM RGB-D sequence as standard camera topics.
 
 ## I/O
 
 | Topic | Type | Direction |
 |---|---|---|
-| /rgbd_frame | meridian_msgs/RGBDFrame | pub |
+| /camera/rgb | sensor_msgs/Image (rgb8) | pub |
+| /camera/depth | sensor_msgs/Image (32FC1, meters) | pub |
+| /camera/info | sensor_msgs/CameraInfo | pub |
+
+All three topics share the same `header.stamp` per frame.
 
 ## Parameters
 
@@ -16,7 +20,10 @@ Replays a TUM RGB-D sequence as `meridian_msgs/RGBDFrame`.
 | rate_hz | double | 10.0 | Playback rate for the replay timer |
 | loop | bool | true | Restart from the first frame after reaching the end of the sequence |
 | max_pair_dt | double | 0.02 | Max seconds between an rgb and depth timestamp to associate them |
-| calibration_id | int | 1 | Calibration id stamped into each published RGBDFrame |
+| fx | double | 525.0 | Camera intrinsic focal length x |
+| fy | double | 525.0 | Camera intrinsic focal length y |
+| cx | double | 319.5 | Camera principal point x |
+| cy | double | 239.5 | Camera principal point y |
 
 ## Run
 

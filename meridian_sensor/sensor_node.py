@@ -7,7 +7,7 @@ from cv_bridge import CvBridge
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
-from meridian_msgs.msg import RGBDFrame
+from sensor_msgs.msg import CameraInfo, Image
 
 TUM_DEPTH_SCALE = 5000.0
 
@@ -34,20 +34,29 @@ class MeridianSensor(Node):
         self.declare_parameter('rate_hz', 10.0)
         self.declare_parameter('loop', True)
         self.declare_parameter('max_pair_dt', 0.02)
-        self.declare_parameter('calibration_id', 1)
+        # TUM freiburg1 default intrinsics
+        self.declare_parameter('fx', 525.0)
+        self.declare_parameter('fy', 525.0)
+        self.declare_parameter('cx', 319.5)
+        self.declare_parameter('cy', 239.5)
 
         self.dataset_dir = self.get_parameter('dataset_dir').value
         self.rate_hz = self.get_parameter('rate_hz').value
         self.loop = self.get_parameter('loop').value
         self.max_pair_dt = self.get_parameter('max_pair_dt').value
-        self.calibration_id = self.get_parameter('calibration_id').value
+        self.fx = self.get_parameter('fx').value
+        self.fy = self.get_parameter('fy').value
+        self.cx = self.get_parameter('cx').value
+        self.cy = self.get_parameter('cy').value
 
         self.bridge = CvBridge()
         self.pairs = []
         self.index = 0
 
         qos = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, history=HistoryPolicy.KEEP_LAST, depth=10)
-        self.pub = self.create_publisher(RGBDFrame, '/rgbd_frame', qos)
+        self.rgb_pub = self.create_publisher(Image, '/camera/rgb', qos)
+        self.depth_pub = self.create_publisher(Image, '/camera/depth', qos)
+        self.info_pub = self.create_publisher(CameraInfo, '/camera/info', qos)
 
         self.pairs = self._build_pairs()
         self.get_logger().info('meridian_sensor started, %d rgb-depth pairs' % len(self.pairs))
@@ -96,17 +105,29 @@ class MeridianSensor(Node):
 
         stamp = self.get_clock().now().to_msg()
 
-        frame = RGBDFrame()
-        frame.timestamp = stamp
-        frame.rgb = self.bridge.cv2_to_imgmsg(rgb, encoding='rgb8')
-        frame.rgb.header.stamp = stamp
-        frame.rgb.header.frame_id = 'camera'
-        frame.depth_m = self.bridge.cv2_to_imgmsg(depth_m, encoding='32FC1')
-        frame.depth_m.header.stamp = stamp
-        frame.depth_m.header.frame_id = 'camera'
-        frame.calibration_id = self.calibration_id
+        rgb_msg = self.bridge.cv2_to_imgmsg(rgb, encoding='rgb8')
+        rgb_msg.header.stamp = stamp
+        rgb_msg.header.frame_id = 'camera'
+        depth_msg = self.bridge.cv2_to_imgmsg(depth_m, encoding='32FC1')
+        depth_msg.header.stamp = stamp
+        depth_msg.header.frame_id = 'camera'
 
-        self.pub.publish(frame)
+        info_msg = CameraInfo()
+        info_msg.header.stamp = stamp
+        info_msg.header.frame_id = 'camera'
+        info_msg.width = rgb_msg.width
+        info_msg.height = rgb_msg.height
+        info_msg.distortion_model = 'plumb_bob'
+        info_msg.k = [self.fx, 0.0, self.cx,
+                      0.0, self.fy, self.cy,
+                      0.0, 0.0, 1.0]
+        info_msg.p = [self.fx, 0.0, self.cx, 0.0,
+                      0.0, self.fy, self.cy, 0.0,
+                      0.0, 0.0, 1.0, 0.0]
+
+        self.rgb_pub.publish(rgb_msg)
+        self.depth_pub.publish(depth_msg)
+        self.info_pub.publish(info_msg)
 
         self.get_logger().info('published frame %d/%d' % (self.index + 1, len(self.pairs)),
                                 throttle_duration_sec=5.0)
