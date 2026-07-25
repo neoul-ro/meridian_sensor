@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>meridian_sensor</name>
-  <version>0.1.0</version>
+  <version>0.0.2</version>
   <description>RGB-D dataset replay node for the Meridian perception pipeline.</description>
 
   <maintainer email="a_o@kakao.com">blu-y</maintainer>
