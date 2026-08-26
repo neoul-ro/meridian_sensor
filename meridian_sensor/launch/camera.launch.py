@@ -53,8 +53,15 @@ def generate_launch_description():
         # at 40 Hz. SR-LIVO (RA-L 2023) makes the rule explicit for spinning
         # LiDAR: at most 2x the sweep rate, because a time slice of a spinning
         # scan is an azimuth wedge, not a subsample. We were running 3:1.
+        # 2026-08-26: 848x480 (16:9) -> 640x480 (4:3). meridian_seg 의 letterbox
+        # 는 소스 해상도에서 자동으로 계산되는데, 4:3 이 아니면 /segment_image 가
+        # 256x192 가 아니라 256x145 로 나오고 원본 좌표 환산 배율도 2.5 가 아니라
+        # 3.3125 가 된다. meridian_seg / meridian_geobuilder 문서가 전부 2.5 를
+        # 전제하고 있어서 해상도 쪽을 맞췄다.
+        # ! camera_d435.yaml 의 intrinsic 은 848x480 에서 Kalibr 로 잰 값이다.
+        #   640x480 은 같은 센서의 다른 판독 모드라 그 값을 그대로 쓸 수 없다.
         # Revert to '848x480x30' to undo.
-        DeclareLaunchArgument('color_profile', default_value='848x480x30',
+        DeclareLaunchArgument('color_profile', default_value='640x480x30',
                               description='D435 colour stream WxHxFPS'),
         Node(
             package='realsense2_camera',
