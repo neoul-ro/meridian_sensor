@@ -45,8 +45,7 @@ def _system_cv_bridge_env():
 def generate_launch_description():
     return LaunchDescription([
         # Depth + color-aligned depth on by default (SAM pipeline consumes it).
-        DeclareLaunchArgument('enable_depth', default_value='true',
-                              description='Enable D435 depth + color-aligned depth'),
+        DeclareLaunchArgument('enable_depth', default_value='true'),
         # FAST-LIVO2 wants the camera at the LiDAR rate. Every experiment in the
         # paper ran 10 Hz cameras against 10 Hz LiDAR, and on Hilti the authors
         # downsampled a 40 Hz camera to 10 Hz rather than let sync_packages slice
@@ -61,8 +60,7 @@ def generate_launch_description():
         # ! camera_d435.yaml 의 intrinsic 은 848x480 에서 Kalibr 로 잰 값이다.
         #   640x480 은 같은 센서의 다른 판독 모드라 그 값을 그대로 쓸 수 없다.
         # Revert to '848x480x30' to undo.
-        DeclareLaunchArgument('color_profile', default_value='640x480x30',
-                              description='D435 colour stream WxHxFPS'),
+        DeclareLaunchArgument('color_profile', default_value='640x480x30'),
         Node(
             package='realsense2_camera',
             executable='realsense2_camera_node',
