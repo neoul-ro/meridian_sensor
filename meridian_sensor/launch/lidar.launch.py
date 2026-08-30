@@ -1,4 +1,4 @@
-"""VLP-16 driver only -> /velodyne_points (+ Meridian schema alias /lidar/points)."""
+"""VLP-16 드라이버만 -> /velodyne_points (+ Meridian 계약 별칭 /lidar/points)."""
 
 import os
 
